@@ -3,19 +3,21 @@ import { defineConfig } from 'vitepress'
 export default defineConfig({
   lang: 'zh-CN',
   title: 'goqbot',
-  description: 'QQ 官方机器人 ↔ OneBot V11 适配器',
+  description: '一个由 Go 单文件构成的协议端，提供了 QQ 官方机器人与 OneBot V11 / NoneBot2 之间的桥接。',
   base: '/gd-goqbot-docs/',
   lastUpdated: true,
   cleanUrls: true,
   ignoreDeadLinks: true,
 
   head: [
-    ['link', { rel: 'icon', href: '/gd-goqbot-docs/favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/gd-goqbot-docs/logo-v2.png' }],
+    ['link', { rel: 'apple-touch-icon', href: '/gd-goqbot-docs/logo-v2.png' }],
+    ['meta', { property: 'og:image', content: 'https://huilongxiji.github.io/gd-goqbot-docs/logo-v2.png' }],
     ['meta', { name: 'theme-color', content: '#00add8' }],
   ],
 
   themeConfig: {
-    logo: '/favicon.svg',
+    logo: '/logo-v2.png',
     siteTitle: 'goqbot',
     outline: { label: '本页目录', level: [2, 3] },
     search: { provider: 'local' },
