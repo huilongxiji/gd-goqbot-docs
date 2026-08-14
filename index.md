@@ -2,7 +2,7 @@
 layout: home
 
 title: goqbot
-titleTemplate: QQ 官方机器人 ↔ OneBot V11 适配器
+titleTemplate: false
 
 hero:
   name: goqbot
