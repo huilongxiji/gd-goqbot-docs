@@ -145,7 +145,7 @@ await bot.send_private_msg(user_id=uid, message="该交周报了", is_wakeup=Tru
 
 **强制主动**发群：忽略 `reply` 段、不套 lazy 凭证，`msg_id`/`event_id` 均清空。
 
-生产环境受主动消息频控（目前每群每月最多 4 条，且需群主打开「机器人在群聊内发言」）。沙箱不限。
+生产环境受主动消息频控：需群主打开「机器人在群聊内发言」；Bot 维度 60/qpm（未认证 30/qpm），单关系 20/qpm，每个群每天最多 1000 条。详见 [已知限制](/guide/limits)。
 
 ### 请求 `params`
 
