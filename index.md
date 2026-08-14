@@ -6,8 +6,8 @@ titleTemplate: false
 
 hero:
   name: goqbot
-  text: 一个由 Go 单文件构成的协议端，提供了 QQ 官方机器人与 OneBot V11 / NoneBot2 之间的桥接。
-  tagline: 用 Go 编写的单文件协议端，让官方机器人无缝接入 NoneBot2。
+  text: 让官方机器人无缝接入 NoneBot2
+  tagline: 一个由 Go 单文件构成的协议端，提供了 QQ 官方机器人与 OneBot V11 / NoneBot2 之间的桥接。
   actions:
     - theme: brand
       text: 开始使用
