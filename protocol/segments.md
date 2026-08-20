@@ -20,7 +20,7 @@
 | `record` / `voice` / `audio` | ✅ 上报为 `record` | ✅ 三种别名都能发 |
 | `file` | ✅ 带 `name` / `file_size` | ✅ |
 | `forward` | ✅ 合并转发 | ❌ 不能主动构造发出 |
-| `markdown` + `keyboard` | — | ✅ |
+| `markdown` + `keyboard` | — | ✅（可与 `reply` 同发） |
 | `stream` | — | ✅ 仅 C2C |
 | `reply` | — | ✅ 被动凭证 + 引用气泡 |
 
@@ -54,13 +54,24 @@ CQ：普通文本，`[` `]` `&` 会转义。
 
 **接收**
 
-群消息若 `add_at_group=true`，或全量消息里 `mentions.is_you=true`，会在段首插入：
+由 `qq.mention_mode` 决定，不再段首额外插入 at。
+
+| `mention_mode` | 行为 |
+|---|---|
+| `strip`（默认） | 正文里的 `<@openid>` 全部剥掉，不出现 at 段 |
+| `raw` | `<@openid>` 留在 text 里，不切段 |
+| `at` | 按原文位置转成 at 段；官机 → `qq=self_id`，其它人 → 映射后的数字 id；`name` 取 `mentions.username`（有则带） |
+
+`at` 模式下示例：
 
 ```json
-{"type":"at","data":{"qq":"<self_id>"}}
+{"type":"at","data":{"qq":"<self_id>","name":"机器人名"}}
+{"type":"at","data":{"qq":"88112233","name":"张三"}}
 ```
 
-正文里的 `<@openid>` 标记会被剥掉，不重复成 at 段。
+`raw_message` 同步为 `[CQ:at,qq=...,name=...]`。`everyone` / `all` 的 `qq` 为 `all`。
+
+旧配置 `add_at_group: true`（且未写 `mention_mode`）等同于 `at`。
 
 ---
 
@@ -157,8 +168,14 @@ await matcher.send(MessageSegment.image("https://example.com/a.png"))
 
 | 效果 | 说明 |
 |---|---|
-| 被动 `msg_id` | 占用 5 分钟被动回复窗口 |
-| 引用气泡 | 需要入站时带了 `msg_idx`（REFIDX）。没有则能被动回复但**不渲染引用条** |
+| 被动 `msg_id` | 仅当 `id` 指向**用户入站且未过期**的消息时占用被动窗口；引用机器人自己发的消息时改走 lazy |
+| 引用气泡 | 需要 REFIDX（入站 `msg_idx` 或出站回包 `ext_info.ref_idx`） |
+
+文本、图片、**markdown** 都可以带引用气泡（与 `reply` 段同条发送即可）。引用只挂在第一条已发出的气泡上。
+
+可引用的目标：
+- **别人发的消息**（含 markdown）：入站时缓存的 `msg_idx`；同时可作为被动凭证（窗口内）
+- **机器人自己发过的消息**（含 markdown）：发消息回包 `ext_info.ref_idx`。被动窗口仍用当前会话 lazy（用户那条指令），不能拿机器人自己的 `msg_id` 当被动凭证（平台会 `40034005 已过期`）
 
 `id` 可以是数字或字符串。未命中缓存会告警并退化（可能变成主动消息）。
 
@@ -169,6 +186,8 @@ await matcher.send(MessageSegment.image("https://example.com/a.png"))
 ## `markdown` + `keyboard`
 
 `type` 必须为 `markdown`。`data.data` 是一个 JSON 对象（或该对象的 `base64://` 字符串）。
+
+可与 `reply` 段同条发送，引用用户指令或机器人自己发过的消息（含 markdown）：`MessageSegment.reply(event.message_id)` + markdown。
 
 ```json
 {

@@ -20,7 +20,7 @@
 | `shard_count` | uint32 | `1` | 分片总数，`0` 会归一为 `1` |
 | `shard_id` | uint32 | `0` | 本进程分片号，从 0 开始 |
 | `text_intent` | string[] | 见下 | 按 **handler 名**订阅事件，intent 自动 OR |
-| `add_at_group` | bool | `false` | 群 @ 消息上报时是否在首段补 `at self`（让 NoneBot `to_me()` 为真） |
+| `mention_mode` | string | `"strip"` | 用户 @ 官机时上报怎么处理这段 @，见下 |
 | `self_id` | int64 | `0` | 覆盖上报用 `self_id`。`0` 时按下面规则推导 |
 | `disabled` | bool | `false` | `true`=跳过 QQ 上游连接（只测 OneBot 侧） |
 | `ip_reject_action` | string | `"stop"` | IP 白名单被拒（错误码 11298）后的策略，见下 |
@@ -33,6 +33,22 @@
 3. 否则把 `app_id` 解析为 int64
 
 上报给 NoneBot 的 `self_id`、心跳、`get_login_info.user_id` 都取这个值。
+
+### `mention_mode`
+
+用户发「@机器人 你好」时，QQ 正文会带 `<@官机openid>`。由此决定上报形态：
+
+| 值 | 行为 | 下游 `message` 示例 |
+|---|---|---|
+| `strip`（默认） | 丢掉所有 `<@...>`，不补 at | `[{"type":"text","data":{"text":"你好"}}]` |
+| `raw` | 正文原样保留 `<@openid>`，交给下游自己处理 | `[{"type":"text","data":{"text":"<@E1F2...> 你好"}}]` |
+| `at` | 按位置切成 OneBot at / text | `[{"type":"at","data":{"qq":"<self_id>","name":"机器人名"}},{"type":"text","data":{"text":" 你好"}}]` |
+
+`at` 会同时写入 `message` 段数组和 `raw_message` CQ（`[CQ:at,qq=...,name=...]`）。`onebot.message_format: string` 时还有 `message_cq`。NoneBot `to_me()` 需要消息里有 at self，因此应设 `mention_mode: at`。
+
+大小写不敏感。空或未知值按 `strip`。
+
+已废弃的 `qq.add_at_group` 仍能读：仅当 **未配置** `mention_mode` 时，`true` 视为 `at`，`false` 视为 `strip`。新配置请只用 `mention_mode`。
 
 ### `ip_reject_action`
 
@@ -79,7 +95,7 @@
 | `access_token` | string | `""` | 下游鉴权口令。空=不校验 |
 | `heartbeat_interval` | int | `5000` | 心跳间隔**毫秒**。`<=0` 关闭心跳 |
 | `message_format` | string | `"array"` | 见下 |
-| `debug` | bool | `false` | `true` 时打印收到的 action 请求；同时显示 botgo 心跳 |
+| `debug` | bool | `false` | `true` 时动作边框额外输出接口名、参数、返回状态、耗时；同时显示 botgo 心跳 |
 | `downtime_message` | string | `""` | 所有下游都掉线时，直接被动回发 QQ 的兜底文本。空=关闭 |
 | `servers` | list | 必配至少一条有效连接 | 正向 / 反向 WS 列表 |
 

@@ -29,7 +29,7 @@ QQ 官方发消息接口：
 
 群维度：优先 `group+user`，再回退到仅 group。
 
-`reply` 段：用缓存的 `MsgMeta.MsgID` 作被动 `msg_id`；若有 `msg_idx` 则写入 `message_reference` 渲染引用条（平台要 REFIDX，直接塞 `ROBOT1.0_` 会 200 但不显示引用）。
+`reply` 段：`message_reference` 用 REFIDX 画引用条；被动 `msg_id` **只**在被引消息是用户入站且未过窗口时采用。引用机器人自己发的消息时只带引用条，被动凭证回落到 lazy。REFIDX 来源：别人的消息用入站 `msg_idx`，机器人自己发的用回包 `ext_info.ref_idx`。直接塞 `ROBOT1.0_` 会 200 但不显示引用。markdown 发送时 `content` 必须为空。
 
 ---
 

@@ -10,7 +10,7 @@
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `message_id` | int64 | 本程序分配的数字消息 id（对 QQ 原始 `msg_id` 做哈希）。可用于 `delete_msg` / `get_msg`（发出的消息 **不** 写入 `get_msg` 缓存，但撤回可用） |
+| `message_id` | int64 | 本程序分配的数字消息 id（对 QQ 原始 `msg_id` 做哈希）。可用于 `delete_msg` / `get_msg` |
 
 单聊若带了 `stream` 段，额外返回：
 

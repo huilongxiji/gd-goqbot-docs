@@ -45,6 +45,8 @@ async def _(bot: Bot, event: GroupMessageEvent):
     await m.send("收到")          # 自动被动回复
 ```
 
+群里用户「@机器人 命令」时，默认 `qq.mention_mode: strip` 会裁掉这段 @，`event.message` 只剩后面的文本，`to_me()` 为假。若插件依赖 `to_me()` 或要按消息段切开 at，设 `mention_mode: at`。
+
 自定义 notice：
 
 ```python
@@ -92,6 +94,35 @@ await matcher.send(MessageSegment("file", {
     "file": "file:///tmp/a.pdf",
     "name": "a.pdf",
 }))
+
+# 引用用户指令（文本 / 图片 / markdown 均可）
+await matcher.send(MessageSegment.reply(event.message_id) + "收到")
+```
+
+引用 + markdown 正文 + 按钮（同一条 `send`；不要在 markdown 前面再加纯文本，引用只挂在第一条已发出的气泡上）：
+
+```python
+md = MessageSegment("markdown", {
+    "data": {
+        "markdown": {"content": "**收到**"},
+        "keyboard": {
+            "content": {
+                "rows": [{
+                    "buttons": [{
+                        "id": "ok",
+                        "render_data": {"label": "确认", "style": 1},
+                        "action": {
+                            "type": 1,
+                            "data": "ok",
+                            "permission": {"type": 2},
+                        },
+                    }]
+                }]
+            }
+        },
+    }
+})
+await matcher.send(MessageSegment.reply(event.message_id) + md)
 ```
 
 反查 openid：
