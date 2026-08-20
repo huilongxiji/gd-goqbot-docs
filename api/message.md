@@ -42,7 +42,11 @@ await bot.delete_msg(message_id=event.message_id)
 
 ## `get_msg`
 
-取回**入站时**缓存的消息快照。仅内存，FIFO，最多 **10000** 条；进程重启丢失。发出去的消息不会进入此缓存。
+取回缓存的消息快照。仅内存，FIFO，最多 **10000** 条；进程重启丢失。
+
+入站消息在收到时写入；**本程序发出去的消息**在发送成功后也会写入，因此 `send` 返回的 `message_id` 可以立刻 `get_msg`。
+
+对齐 [OneBot v11 `get_msg`](https://github.com/botuniverse/onebot-11/blob/master/api/public.md#get_msg-获取消息) / go-cqhttp：`time`、`message_type`、`message_id`、`real_id`、`sender`、`message`，以及 `raw_message`。群消息额外有 `group` / `group_id`。
 
 ### 请求 `params`
 
@@ -98,6 +102,12 @@ await bot.delete_msg(message_id=event.message_id)
 |---|---|
 | 1400 | `缺少 message_id` |
 | 1404 | `消息不存在或未缓存` |
+
+```python
+ret = await bot.send(event, "hello")
+data = await bot.get_msg(message_id=ret["message_id"])
+# data["message_id"] / data["message"] / data["sender"] / data["time"] ...
+```
 
 ---
 
