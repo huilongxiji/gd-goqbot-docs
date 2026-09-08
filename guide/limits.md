@@ -34,9 +34,7 @@
 | 动作 | 行为 |
 |---|---|
 | `set_group_whole_ban` | 固定 1404，官方无成员级以外的设置接口 |
-| `get_group_member_info` 查他人 | 1404，官方无此接口 |
-| `get_group_member_list` 等 | 未实现 → 空成功 `data={}` |
-| 未识别 action | 空成功，不报错 |
+| 未识别 action | `retcode=1404`，`unsupported action` |
 
 ## ID 语义
 

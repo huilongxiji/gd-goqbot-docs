@@ -47,7 +47,8 @@
 |---|---|---|---|
 | `get_group_info` | — | 查群信息 | 官方白名单 |
 | `get_group_bot_state` | — | 查机器人在群状态 | 官方白名单 |
-| `get_group_member_info` | — | 查成员信息 | 仅 `user_id=self_id` |
+| `get_group_member_list` | — | 查群成员列表（最多 30 条/页） | 官方白名单（内邀） |
+| `get_group_member_info` | — | 查成员信息 | 白名单；`self_id` 走 bot_state |
 | `get_group_join_requests` | `get_group_system_msg` | 拉取入群申请 | 群管理员 |
 | `set_group_add_request` | — | 审批入群申请 | 群管理员 |
 | `set_group_ban` | — | 单成员禁言/解除 | 群管理员 |

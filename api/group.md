@@ -2,7 +2,7 @@
 
 权限约定：
 
-- `get_group_info` / `get_group_bot_state`：官方 **白名单** 接口。非白名单机器人调用 QQ 返回 **11253**，本程序透传为 `retcode=1500`。
+- `get_group_info` / `get_group_bot_state` / `get_group_member_list` / `get_group_member_info`（查他人）：官方 **白名单** 接口（内邀）。非白名单机器人调用 QQ 返回 **11253**，本程序透传为 `retcode=1500`。
 - 入群申请列表 / 审批、禁言查询 / 设置：机器人必须是 **群管理员**。
 - `group_id` 必须能反查到 openid（先收到过该群消息）。
 
@@ -102,14 +102,17 @@
 
 ## `get_group_member_info`
 
-QQ 群 v2 **没有**查询其他成员信息的接口。仅当 `user_id == self_id` 时走 `bot_state`，查他人返回 1404。
+获取指定群成员信息。官方白名单（内邀）。
+
+- `user_id == self_id`：走 `bot_state`，额外返回主动推送 / 收消息设置。
+- 查他人：走 `GET /v2/groups/{group_openid}/members/{member_openid}`，`user_id` 必须能反查 openid（可先调 `get_group_member_list` 登记）。
 
 ### 请求 `params`
 
 | 字段 | 类型 | 必填 |
 |---|---|---|
 | `group_id` | int64 | ✅ |
-| `user_id` | int64 | ✅，且必须等于机器人 `self_id` |
+| `user_id` | int64 | ✅ |
 
 ### 成功 `data`（查自身）
 
@@ -136,12 +139,108 @@ QQ 群 v2 **没有**查询其他成员信息的接口。仅当 `user_id == self_
 | `allow_proactive_msg` | bool |
 | `recv_msg_setting` | string |
 | `member_openid` | string |
+| `bot` | `true` |
+
+### 成功 `data`（查他人）
+
+OneBot 成员字段 + 官方成员扩展（无 `allow_proactive_msg` / `recv_msg_setting`）：
+
+| 字段 | 说明 |
+|---|---|
+| `nickname` / `username` | 官方昵称 |
+| `role` / `member_role` | `owner` / `admin` / `member` |
+| `bot` | 是否机器人账号 |
+| `joined_at` | RFC3339 入群时间 |
+| `member_openid` / `user_openid` | 成员 OpenID |
+| `union_openid` | 可能为空 |
 
 ### 失败
 
+| retcode | 说明 |
+|---|---|
+| 1400 | 缺少 `group_id` / `user_id` |
+| 1404 | 未知 `group_id` / 未知 `user_id` / 发送通道未就绪 |
+| 1500 | 含非白名单 `11253` 等 |
+
+---
+
+## `get_group_member_list`
+
+获取群成员列表。官方白名单（内邀）。每次最多 **30** 条，用 `cursor` / `next_cursor` 分页。调用时会把成员 openid 写入 idmap，便于随后 `get_group_member_info` / `set_group_ban`。
+
+官方接口：`GET /v2/groups/{group_openid}/members`，频控 60 QPM。
+
+### 请求 `params`
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `group_id` | int64 | ✅ | — |
+| `cursor` | string | ❌ | 上一页返回的 `next_cursor`；首次可不传 |
+
+### 成功 `data`
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `group_id` | int64 | — |
+| `group_openid` | string | — |
+| `members` | array | 本页成员，最多 30 条 |
+| `next_cursor` | string | 下一页游标，空串表示已到末页 |
+
+`members[]` 字段同 `get_group_member_info` 查他人。
+
 ```json
-{"status":"failed","retcode":1404,"message":"QQ群v2无获取其他成员信息的接口；仅支持查询机器人自身（user_id=self_id，走 bot_state）"}
+{
+  "status": "ok",
+  "retcode": 0,
+  "data": {
+    "group_id": 123456,
+    "group_openid": "E2...",
+    "next_cursor": "bG1fNmIxOTM1NTRjNy4zMA",
+    "members": [
+      {
+        "group_id": 123456,
+        "user_id": 111,
+        "nickname": "阳光小助手",
+        "card": "",
+        "sex": "unknown",
+        "age": 0,
+        "area": "",
+        "join_time": 0,
+        "last_sent_time": 0,
+        "level": "0",
+        "role": "member",
+        "unfriendly": false,
+        "title": "",
+        "title_expire_time": 0,
+        "card_changeable": false,
+        "joined_at": "2025-08-20T09:15:00+08:00",
+        "member_openid": "7A3B...",
+        "user_openid": "7A3B...",
+        "username": "阳光小助手",
+        "member_role": "member",
+        "bot": false,
+        "union_openid": "9F2E..."
+      }
+    ]
+  }
+}
 ```
+
+```python
+page = await bot.call_api("get_group_member_list", group_id=gid)
+members = page["members"]
+while page.get("next_cursor"):
+    page = await bot.call_api("get_group_member_list", group_id=gid, cursor=page["next_cursor"])
+    members.extend(page["members"])
+```
+
+### 失败
+
+| retcode | 说明 |
+|---|---|
+| 1400 | 缺少 `group_id` |
+| 1404 | 未知 `group_id` / 发送通道未就绪 |
+| 1500 | 含非白名单 `11253` 等 |
 
 ---
 
