@@ -229,6 +229,7 @@ await matcher.send(MessageSegment.image("https://example.com/a.png"))
 | `style.main_font_size` | `small` / `middle` / `large` |
 | `style.layout` | `hide_avatar_and_center` |
 | `process_msg` | 引导消息 |
+| `force_verify_image_resource` | 框架发送群/单聊 markdown 时固定为 `true`：正文图片转存失败则消息不发出，下游收到失败（`retcode=1500`） |
 
 ### 按钮 `action.type`
 
