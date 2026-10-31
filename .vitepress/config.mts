@@ -51,6 +51,7 @@ export default defineConfig({
 
     nav: [
       { text: '指南', link: '/guide/intro' },
+      { text: '框架接入', link: '/guide/multi-framework' },
       { text: 'API', link: '/api/overview' },
       { text: '协议', link: '/protocol/events' },
       { text: 'GitHub', link: 'https://github.com/huilongxiji/gd-goqbot-framework' },
@@ -65,9 +66,16 @@ export default defineConfig({
             { text: '快速开始', link: '/guide/start' },
             { text: '配置说明', link: '/guide/config' },
             { text: '连接协议', link: '/guide/connect' },
-            { text: 'NoneBot 接入', link: '/guide/nonebot' },
-            { text: '多框架接入', link: '/guide/multi-framework' },
             { text: '已知限制', link: '/guide/limits' },
+          ],
+        },
+        {
+          text: '框架接入',
+          items: [
+            { text: '接入概览', link: '/guide/multi-framework' },
+            { text: 'NoneBot2', link: '/guide/nonebot' },
+            { text: 'AstrBot', link: '/guide/astrbot' },
+            { text: 'MaiBot', link: '/guide/maibot' },
           ],
         },
       ],

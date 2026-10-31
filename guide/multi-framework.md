@@ -1,4 +1,4 @@
-# 多框架接入
+# 接入概览
 
 **一个协议端，多个应用端。** goqbot 可以同时连接多个 OneBot V11 下游。NoneBot2、AstrBot、MaiBot 等框架一起连到同一个 goqbot，共用一个 QQ 官方机器人：
 
@@ -39,11 +39,13 @@ onebot:
 
 ### 各框架侧设置
 
-| 框架 | 接入方式 | 需要设置 |
-|---|---|---|
-| NoneBot2 | `nonebot-adapter-onebot`（OneBot V11 适配器）自带反向 WS 服务 | 默认路径 `/onebot/v11/ws`；`.env` 中 `ONEBOT_ACCESS_TOKEN` 填 goqbot 的 `access_token`。详见 [NoneBot 接入](/guide/nonebot) |
-| AstrBot | WebUI 中添加「OneBot v11」（aiocqhttp）消息平台，开启反向 WebSocket | 默认端口 `6199`、路径 `/ws`；「反向 Websocket Token」填 goqbot 的 `access_token` |
-| MaiBot | MaiBot 本身不支持 OneBot V11，安装 [MaiBot-GoqBot-Adapter](https://github.com/huilongxiji/MaiBot-GoqBot-Adapter) 插件 | 插件配置页：连接方式选「反向」，地址填插件监听地址（如 `ws://127.0.0.1:8095/onebot/v11/ws`），访问令牌填 goqbot 的 `access_token` |
+| 框架 | 接入方式 | 默认反向地址 | 详细步骤 |
+|---|---|---|---|
+| NoneBot2 | `nonebot-adapter-onebot`（OneBot V11 适配器）自带反向 WS 服务 | `ws://127.0.0.1:8080/onebot/v11/ws` | [NoneBot2 接入](/guide/nonebot) |
+| AstrBot | WebUI 中添加「OneBot v11」消息平台 | `ws://127.0.0.1:6199/ws` | [AstrBot 接入](/guide/astrbot) |
+| MaiBot | 不支持 OneBot V11，安装 [MaiBot-GoqBot-Adapter](https://github.com/huilongxiji/MaiBot-GoqBot-Adapter) 插件 | 插件配置的「地址」，如 `ws://127.0.0.1:8095/onebot/v11/ws` | [MaiBot 接入](/guide/maibot) |
+
+其他支持 OneBot V11 正向 / 反向 WebSocket 的框架，按同样方式在 `servers` 里加一条连接即可。
 
 ::: tip access_token 是全局的
 goqbot 的 `onebot.access_token` 对所有下游生效，每个框架都要填同一个值。

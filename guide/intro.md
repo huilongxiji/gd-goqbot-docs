@@ -21,7 +21,7 @@ QQ 官方平台 (WebSocket)
 
 - **上游**：仅支持 QQ 官方 **WebSocket**（不支持 Webhook）。
 - **下游**：仅支持 OneBot V11 **正向 / 反向 WebSocket**（不支持 HTTP），可同时配置多条。
-- **多下游**：每条事件广播给所有已连接的下游，各框架自己决定是否回复；动作响应只回给发起请求的那条连接。配置方法见 [多框架接入](/guide/multi-framework)。
+- **多下游**：每条事件广播给所有已连接的下游，各框架自己决定是否回复；动作响应只回给发起请求的那条连接。配置方法见 [框架接入](/guide/multi-framework)。
 - **范围**：QQ **群** 与 **单聊 (C2C)**。频道（guild）线尚未接入。
 
 ## 核心能力
@@ -53,4 +53,4 @@ QQ 官方平台 (WebSocket)
 - 标准 OneBot V11 消息段（文本、@、图片、引用等）在各框架中通用；markdown、按钮、流式、图文卡片等 QQ 官方特有能力以 **NoneBot2 的消息段写法**为参考设计，其他框架需要按相同的段格式构造。
 - 本项目由维护者个人长期维护，按自己的使用场景演进，开源供学习与交流，不保证适配所有框架的所有用法。
 
-下一步：[快速开始](/guide/start) · [配置说明](/guide/config) · [多框架接入](/guide/multi-framework) · [API 动作总览](/api/overview)
+下一步：[快速开始](/guide/start) · [配置说明](/guide/config) · [框架接入](/guide/multi-framework) · [API 动作总览](/api/overview)

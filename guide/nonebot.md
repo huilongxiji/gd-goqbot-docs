@@ -1,6 +1,6 @@
-# NoneBot 接入
+# NoneBot2 接入
 
-goqbot 的 QQ 特有消息段（markdown、按钮、流式、图文卡片等）以 **NoneBot2 + onebot v11 消息段写法**为参考设计，本页示例均以 NoneBot2 为准。NoneBot 与 AstrBot、MaiBot 等框架同时接入同一个 goqbot 的方法见 [多框架接入](/guide/multi-framework)。
+goqbot 的 QQ 特有消息段（markdown、按钮、流式、图文卡片等）以 **NoneBot2 + onebot v11 消息段写法**为参考设计，本页示例均以 NoneBot2 为准。NoneBot 与 AstrBot、MaiBot 等框架同时接入同一个 goqbot 的方法见 [接入概览](/guide/multi-framework)，AstrBot / MaiBot 的步骤见 [AstrBot 接入](/guide/astrbot)、[MaiBot 接入](/guide/maibot)。
 
 适配器：`nonebot-adapter-onebot`。
 
@@ -25,7 +25,7 @@ onebot:
         universal: ws://127.0.0.1:8080/onebot/v11/ws
 ```
 
-`access_token` 两边保持一致。
+`access_token` 两边保持一致：NoneBot 侧在 `.env` 中设置 `ONEBOT_ACCESS_TOKEN=your-token`。
 
 ---
 
