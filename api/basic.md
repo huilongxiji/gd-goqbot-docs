@@ -68,7 +68,7 @@
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `app_name` | string | 程序名，当前为 `"goqbot"` |
-| `app_version` | string | 程序版本，当前为 `"1.9.1"` |
+| `app_version` | string | 程序版本，当前为 `"1.11.1"` |
 | `protocol_version` | object | OneBot 协议版本 `{major:1, minor:0, patch:0}` |
 
 ```json
@@ -77,7 +77,7 @@
   "retcode": 0,
   "data": {
     "app_name": "goqbot",
-    "app_version": "1.9.1",
+    "app_version": "1.11.1",
     "protocol_version": {"major": 1, "minor": 0, "patch": 0}
   }
 }

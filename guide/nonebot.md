@@ -1,6 +1,6 @@
 # NoneBot 接入
 
-核心目标是服务 **NoneBot2 + onebot v11 消息段写法**。不保证其它框架的兼容。
+goqbot 的 QQ 特有消息段（markdown、按钮、流式、图文卡片等）以 **NoneBot2 + onebot v11 消息段写法**为参考设计，本页示例均以 NoneBot2 为准。NoneBot 与 AstrBot、MaiBot 等框架同时接入同一个 goqbot 的方法见 [多框架接入](/guide/multi-framework)。
 
 适配器：`nonebot-adapter-onebot`。
 

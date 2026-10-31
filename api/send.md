@@ -17,6 +17,7 @@
 | 字段 | 类型 | 说明 |
 |---|---|---|
 | `stream_id` | string | QQ 侧原始消息 id，后续续帧必须回填到 `stream.id` |
+| `remain_msg_len` | int | 该流剩余可写字符数；平台未返回时为 `-1` |
 
 ```json
 {"status":"ok","retcode":0,"data":{"message_id":881122334455}}
@@ -25,7 +26,7 @@
 流式首帧：
 
 ```json
-{"status":"ok","retcode":0,"data":{"message_id":881122334455,"stream_id":"ROBOT1.0_xxxx"}}
+{"status":"ok","retcode":0,"data":{"message_id":881122334455,"stream_id":"ROBOT1.0_xxxx","remain_msg_len":4096}}
 ```
 
 ### 通用失败
@@ -35,6 +36,7 @@
 | 1404 | `QQ 发送通道未就绪` |
 | 1400 | `未知 group_id（尚未收到该群消息）` / `未知 user_id（尚未收到该用户消息）` |
 | 1400 | `空消息`（解析后没有任何可发送内容，且不是纯 stream 帧） |
+| 1460 | `无可用被动凭证（passive_only=true，未降级为主动消息）`，见下方 [`passive_only`](#passive-only-仅被动) |
 | 1500 | QQ 发送失败原文（频控、未授权主动发言、文件过大等） |
 
 ---
@@ -50,6 +52,7 @@
 | `group_id` | int64 | ✅ | 目标群数字 id |
 | `message` | array 或 string | ✅ | 消息段数组或 CQ 字符串，见 [消息段](/protocol/segments) |
 | `user_id` | int64 | ❌ | 可选。传入时 lazy 凭证优先匹配「该群+该用户」维度（更准的被动窗口） |
+| `passive_only` | bool | ❌ | `true`=只发被动消息：没有可用被动凭证时返回 `1460`，不降级为主动。见下方 [`passive_only`](#passive-only-仅被动) |
 
 ```json
 {
@@ -84,6 +87,7 @@ await matcher.send("收到")          # 会自动带上当前 event 的 group/us
 | `user_id` | int64 | ✅ | 目标用户数字 id |
 | `message` | array 或 string | ✅ | 消息内容 |
 | `is_wakeup` | bool | ❌ | `true`=互动召回消息。与 reply / 被动 `event_id` **互斥**，强制不套被动凭证 |
+| `passive_only` | bool | ❌ | 同 `send_group_msg`。与 `is_wakeup` **互斥**，同时传返回 `1400` |
 
 ```json
 {
@@ -134,9 +138,40 @@ await bot.send_private_msg(user_id=uid, message="该交周报了", is_wakeup=Tru
 | `group_id` | int64 | 群时必填 | — |
 | `user_id` | int64 | 私聊时必填 | 群聊时可选，用于 lazy 匹配 |
 | `is_wakeup` | bool | ❌ | 仅私聊生效 |
+| `passive_only` | bool | ❌ | 群聊、私聊都生效 |
 
 ```json
 {"action":"send_msg","params":{"message_type":"group","group_id":123,"message":"hi"}}
+```
+
+---
+
+## `passive_only` 仅被动
+
+`send_group_msg` / `send_private_msg` / `send_msg` 的可选参数。
+
+默认情况下，找不到被动凭证（`reply` 命中的入站消息，或 lazy 窗口内的凭证）时，这三个动作会**自动降级为主动消息**。带上 `passive_only=true` 后不再降级，而是直接返回：
+
+```json
+{"status":"failed","retcode":1460,"data":null,"message":"无可用被动凭证（passive_only=true，未降级为主动消息）"}
+```
+
+由下游自己决定下一步：放弃发送，或者改调 `send_group_active_msg` / `send_private_active_msg`。
+
+适合多个框架共用一个 goqbot 的场景：被动回复额度是所有下游共用的，下游自己无法准确判断某次发送会不会变成主动消息；用 `passive_only` 先试被动，就能精确控制主动消息的数量（例如 MaiBot 适配插件的主动消息开关与单群限速）。
+
+- 与 `is_wakeup` 互斥，同时传返回 `1400`。
+- 对 `send_*_active_msg` 无效（它们本来就是强制主动）。
+- 需要 goqbot ≥ 1.11.0；更早的版本会忽略该参数，照常降级。
+
+```python
+from nonebot.adapters.onebot.v11 import ActionFailed
+
+try:
+    await bot.send_group_msg(group_id=gid, message="收到", passive_only=True)
+except ActionFailed as e:
+    if e.info.get("retcode") == 1460:
+        ...  # 没有被动凭证：放弃，或改调 send_group_active_msg
 ```
 
 ---
@@ -187,6 +222,7 @@ is_wakeup=true                  → 互动召回（主动语义）
 reply 段命中真实 msg_id         → 被动 msg_id + 引用气泡（若有 REFIDX）
 lazy 命中 kind=event            → 被动 event_id（按钮回调后）
 lazy 命中 kind=msg              → 被动 msg_id
+都没有 + passive_only=true      → 失败 1460，不发送
 都没有                          → 主动
 ```
 

@@ -18,7 +18,9 @@ QQ 官方发消息接口：
 
 群消息不支持流式参数。
 
-群主动推送：需群主打开【机器人在群聊内发言】。官方频控为 Bot 维度 60/qpm（未认证 30/qpm）、单关系 20/qpm、每个群每天最多 1000 条。对应 `send_group_active_msg`，或 `send_group_msg` 未命中任何被动凭证时。详见 [已知限制](/guide/limits)。
+群主动推送：需群主打开【机器人在群聊内发言】。官方频控为 Bot 维度 60/qpm（未认证 30/qpm）、单关系 20/qpm、每个群每天最多 1000 条。对应 `send_group_active_msg`，或 `send_group_msg` 未命中任何被动凭证时（带 `passive_only=true` 则不会降级，见下文）。详见 [已知限制](/guide/limits)。
+
+**多个下游共用额度**：goqbot 同时连接多个框架时，所有框架的回复共用同一份被动额度和主动频控。
 
 ---
 
@@ -41,8 +43,13 @@ is_wakeup=true        → 互动召回（主动语义，仅 C2C）
 reply 命中            → 被动 msg_id（+ 引用）
 lazy kind=event       → 被动 event_id
 lazy kind=msg         → 被动 msg_id
+否则 + passive_only    → 返回 1460，不发送
 否则                  → 主动
 ```
+
+### 只发被动：`passive_only`
+
+`send_group_msg` / `send_private_msg` / `send_msg` 带 `passive_only=true` 时，若没有任何被动凭证，返回 `retcode=1460`，**不降级为主动**，由下游决定是否改调 `*_active_msg`。多个框架共用一个 goqbot、需要精确控制主动消息数量时使用。详见 [API-发送消息](/api/send#passive-only-仅被动)。
 
 `msg_seq` 以实际凭证为键去重（`event_id` 优先）。主动消息不带 `msg_seq`。
 

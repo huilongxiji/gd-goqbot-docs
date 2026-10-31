@@ -2,7 +2,7 @@
 
 下游通过 OneBot V11 动作调用。请求格式见 [连接协议](/guide/connect)。
 
-`action` 会自动去掉 `_async` 后缀。未列出的 action 返回空成功 `{"status":"ok","retcode":0,"data":{}}`。
+`action` 会自动去掉 `_async` 后缀。未列出的 action 返回 `{"status":"failed","retcode":1404,"data":null,"message":"unsupported action: xxx"}`。
 
 ---
 
@@ -22,9 +22,9 @@
 
 | action | 说明 | 权限 |
 |---|---|---|
-| `send_group_msg` | 发群消息（被动优先） | 无（主动未命中时受频控） |
-| `send_private_msg` | 发单聊；可 `is_wakeup` / `stream` | 无（主动未命中时受频控） |
-| `send_msg` | 按 `message_type` 或 id 分派 | 无（主动未命中时受频控） |
+| `send_group_msg` | 发群消息（被动优先）；可 `passive_only` | 无（主动未命中时受频控） |
+| `send_private_msg` | 发单聊；可 `is_wakeup` / `stream` / `passive_only` | 无（主动未命中时受频控） |
+| `send_msg` | 按 `message_type` 或 id 分派；可 `passive_only` | 无（主动未命中时受频控） |
 | `send_group_active_msg` | **强制主动**发群 | 需群主开启发言，受频控 |
 | `send_private_active_msg` | **强制主动**发单聊 | 需用户允许主动消息 |
 
@@ -72,6 +72,17 @@
 | `set_command_panel_target` | `PUT /v2/panels/{id}/target` | 修改 specific 面板关联对象 | 仅 specific 面板 |
 
 文档：[API-菜单与指令面板](/api/menu)
+
+## 素材管理
+
+| action | 对应官方接口 | 说明 | 权限 |
+|---|---|---|---|
+| `upload_media_image` | `POST /v2/media-images/prepare` → 上传 → `POST /v2/media-images/complete` | 上传素材图片，返回 `qqbot-media://` 引用链接；同内容未过期直接复用 | 无（每个机器人最多 100 张） |
+| `get_media_image` | — | 按 `image_id` / `sha1` / `file_name` 查询素材是否有效 | 无 |
+| `get_media_images` | `GET /v2/media-images` | 分页列出有效素材 | 无 |
+| `delete_media_image` | `DELETE /v2/media-images/{image_id}/delete` | 删除素材，释放名额 | 无 |
+
+文档：[API-素材管理](/api/media)
 
 官方说明：[自定义菜单与指令面板](https://bot.q.qq.com/wiki/develop/api-v2/server-inter/menu-panel/)
 

@@ -68,12 +68,13 @@ NoneBot 的 `bot.call_api("xxx", **kwargs)` 会自动封装成上述格式。
 |---|---|---|
 | `0` | 成功 | — |
 | `1400` | 请求参数错误 | 缺必填字段、空消息、未知 `group_id`/`user_id`（还没收到过该会话） |
-| `1404` | 找不到 / 不支持 | 消息未缓存、openid 反查失败、发送通道未就绪、接口能力不支持（如全员禁言） |
+| `1404` | 找不到 / 不支持 | 消息未缓存、openid 反查失败、发送通道未就绪、接口能力不支持（如全员禁言）、未识别的 action |
+| `1460` | 无可用被动凭证 | 发送时带了 `passive_only=true`，但没有可用的被动凭证（不会降级为主动消息），见 [API-发送消息](/api/send#passive-only-仅被动) |
 | `1500` | 上游 QQ 接口失败 | 原样带回 QQ 错误文案（含白名单 11253、权限不足、频控等） |
 
 > QQ 原始错误**不做假成功**。权限不够、不在白名单，都会以 `1500` + 官方 message 返回。
 
-> **未识别的 action** 返回 `status=ok`、`data={}`，不报错。
+> **未识别的 action** 返回 `status=failed`、`retcode=1404`，`message` 为 `unsupported action: xxx`，符合 OneBot V11 规范。
 
 NoneBot 侧：成功时 `call_api` 直接得到 `data`；失败抛 `ActionFailed`，可从 `e.info` 读 `retcode` / `message`。
 
