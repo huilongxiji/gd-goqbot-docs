@@ -41,7 +41,7 @@ onebot:
         reconnect-interval: 3000
 ```
 
-goqbot 连上后，插件连接状态变为「已连接」，MaiBot 日志出现 `[goqbot] 网关已就绪：platform=qq self_id=...`。
+goqbot 连上后，插件连接状态变为「QQ <机器人 ID>，goqbot 程序版本 x.x.x」，MaiBot 日志出现 `[goqbot] 网关已就绪：platform=qq self_id=...`。
 
 ::: tip 也可以用正向
 插件「连接方式」选「正向」，地址填 goqbot 正向 ws 的地址（如 `ws://127.0.0.1:6700`）。此时「重连等待」生效；反向时重连间隔由 goqbot 的 `reconnect-interval` 决定。
@@ -70,6 +70,34 @@ goqbot 连上后，插件连接状态变为「已连接」，MaiBot 日志出现
 
 插件不自带名单，使用 MaiBot WebUI「适配器设置 → 黑白名单规则」里为本适配器自动生成的规则面板。**只能填 goqbot 下发的数字 ID**：群聊规则填 `group_id`，私聊规则填 `user_id`；openid 填进去不会生效。这份名单只影响 MaiBot，不影响同一个 goqbot 上的其他框架。
 
+### 聊天工具
+
+「聊天工具」分组让 MaiBot 的模型在聊天中直接使用 goqbot 特有能力。每个工具单独开关，**默认全部关闭**，保存后立即生效，只在本连接的会话中可用：
+
+| 开关 | 工具 | 作用 |
+|---|---|---|
+| Markdown 消息 | `goqbot_send_markdown` | 发送原生 Markdown，可带跳转 / 指令按钮（遵循主动消息开关） |
+| 图文卡片 | `goqbot_send_card` | 发送[图文卡片](/protocol/segments)（链接与封面图须为 https，遵循主动消息开关） |
+| 互动召回 | `goqbot_send_wakeup` | 给私聊用户发[互动召回](/api/send#is-wakeup-互动召回)消息，不受主动消息开关影响 |
+| 主动消息权限查询 | `goqbot_get_push_state` | 查当前群 / 私聊是否允许主动消息 |
+| 撤回消息 | `goqbot_recall_message` | 撤回机器人自己发过的消息 |
+| 群成员禁言 | `goqbot_mute_member` | 按消息 ID 禁言 / 解禁发送者，时长不超过「禁言最长时长」 |
+
+### 开放接口
+
+「开放接口」分组把 goqbot 动作开放给其他 MaiBot 插件，通过 `ctx.api.call("adapter.goqbot.<分组>.<名称>", ...)` 调用。每组单独开关，**默认全部关闭**，关闭后立即下线：
+
+| 开关 | 包含 |
+|---|---|
+| 消息发送 | `message.send`：发送任意消息段，`mode` 可选 `auto` / `passive` / `active` / `wakeup` |
+| 素材库 | [素材管理](/api/media)的上传、查询、列表、删除 |
+| 菜单与指令面板 | 快捷菜单读写、指令面板增删改 |
+| 状态查询 | 私聊推送权限、机器人群内状态、openid、禁言列表、群成员、进群申请 |
+| 群管理 | 禁言 / 解禁、处理进群申请 |
+| 通用动作透传 | `raw.call_action`：调用任意 goqbot 动作，权限最大，谨慎开启 |
+
+参数与 goqbot 同名动作一致，完整 API 名对照见插件 [README](https://github.com/huilongxiji/MaiBot-GoqBot-Adapter#开放接口)。
+
 ---
 
 ## 使用须知
@@ -77,6 +105,6 @@ goqbot 连上后，插件连接状态变为「已连接」，MaiBot 日志出现
 - **@ 识别**：建议 goqbot 设置 `qq.mention_mode: at`，@机器人 才会以 `at` 段下发，MaiBot 才能识别「被提及」。
 - **群全量消息**：想让 MaiBot 看到群里全部消息，在 goqbot `text_intent` 中开启 `GroupMessageEventHandler`，并请群主开启「获取群内全部消息」。
 - **群名**：goqbot 群事件不带群名，插件会尝试一次 `get_group_info`（白名单接口），失败则显示为 `群<group_id>`。
-- **支持范围**：入站支持文本、@、引用、图片（下载后交给 MaiBot 识图），其余类型转为占位文本；出站支持文本、@、引用、图片、语音，合并转发平铺发送。
+- **支持范围**：入站支持文本、@、引用、图片（下载后交给 MaiBot 识图），其余类型转为占位文本；出站支持文本、@、引用、图片、语音，合并转发平铺发送；Markdown、按钮、图文卡片通过「聊天工具」或「开放接口」发送。
 
 更多细节见插件仓库 [README](https://github.com/huilongxiji/MaiBot-GoqBot-Adapter#readme)。
